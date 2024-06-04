@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHAT APP</title>
+</head>
+<body>
+    <h1>Chatting</h1>
+    <input type="text" id="message" placeholder="Your message">
+    <button id="sendbtn">Send</button>
+    <div class="msg"></div>
+    <style>
+        .msg {
+            width: 100%;
+            height: 100vh;
+            margin-top: 10px;
+            color: black;
+            overflow-y: auto;
+            padding: 10px;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const sendBtn = document.getElementById('sendbtn');
+        const messageInput = document.getElementById('message');
+        const msgDiv = document.querySelector('.msg');
+
+        // Function to save messages to local storage
+        function saveMessage(message) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(message);
+            localStorage.setItem('messages', JSON.stringify(messages));
+        }
+
+        // Function to load messages from local storage
+        function loadMessages() {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.forEach(message => {
+                const msgElement = document.createElement('div');
+                msgElement.textContent = message;
+                msgDiv.appendChild(msgElement);
+            });
+        }
+
+        // Load messages when the page loads
+        window.addEventListener('load', loadMessages);
+
+        // Handle incoming messages
+        socket.on('message', (message) => {
+            const msgElement = document.createElement('div');
+            msgElement.textContent = message;
+            msgDiv.appendChild(msgElement);
+            saveMessage(message);
+        });
+
+        // Handle sending messages
+        sendBtn.addEventListener('click', function(e) {
+            const message = messageInput.value;
+            if (message.trim()) {
+                console.log(message);
+                socket.emit('user-message', message);
+
+                // Clear the input field
+                messageInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
